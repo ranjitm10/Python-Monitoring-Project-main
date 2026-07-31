@@ -1,19 +1,19 @@
-# Use a lightweight Python base image
-FROM python:3.9-slim-buster
+FROM python:3.9-slim-bookworm
 
-# Set working directory inside the container
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install build tools needed for packages like psutil that compile C extensions
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy app code
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+
 COPY run.py .
 COPY app/ ./app
 
-# Expose the port used by Flask
 EXPOSE 5000
 
-# Run the application
 CMD ["python", "run.py"]
